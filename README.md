@@ -1,5 +1,8 @@
 ## zelvarys-depaudit
 
+![PyPI total downloads](https://img.shields.io/pepy/dt/zelvarys-depaudit)
+![Release version](https://img.shields.io/github/v/release/zelvarys/depaudit-cli)
+
 A dependency auditor for Python and Node projects. Point it at a repo and it tells you what's wrong with your dependency files.
 
 Works on Termux, Linux, macOS. No runtime dependencies outside the standard library.
