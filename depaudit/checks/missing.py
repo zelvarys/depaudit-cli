@@ -26,20 +26,18 @@ IMPORT_TO_PACKAGE = {
 
 IGNORE_MISSING = {"tests", "test"}
 
+# Defensive: alias-like module names should never reach this check,
+# but skip them if they do.
+ALIAS_PREFIXES = ("@/", "~/", "~~/", "@@/")
+
 
 def _local_packages(root: Path) -> set[str]:
-  """Top-level package and module names that live inside the project.
-
-  A directory with __init__.py, or a bare .py file at the root.
-  These are the project's own code, not external dependencies.
-  """
   names: set[str] = set()
   if not root.is_dir():
     return names
   for entry in root.iterdir():
-    name = entry.name
     if entry.is_dir() and (entry / "__init__.py").exists():
-      names.add(name.replace("_", "-").lower())
+      names.add(entry.name.replace("_", "-").lower())
     elif entry.is_file() and entry.suffix == ".py":
       names.add(entry.stem.replace("_", "-").lower())
   return names
@@ -57,6 +55,8 @@ class MissingCheck(Check):
     for imp in project.imports:
       mod = imp.module
       if mod in STDLIB or mod in IGNORE_MISSING or mod.startswith("_"):
+        continue
+      if any(mod.startswith(p) for p in ALIAS_PREFIXES):
         continue
       if mod in local:
         continue
