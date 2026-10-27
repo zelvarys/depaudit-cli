@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zelvarys-depaudit"
-version = "0.1.0"
+version = "0.1.1"
 description = "Audit project dependencies for common problems"
 readme = "README.md"
 requires-python = ">=3.10"
