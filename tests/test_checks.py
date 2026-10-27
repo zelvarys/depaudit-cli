@@ -1,5 +1,4 @@
 from depaudit.checks.duplicate import DuplicateCheck
-from depaudit.checks.missing import MissingCheck
 from depaudit.checks.stdlib_shadow import StdlibShadowCheck
 from depaudit.checks.unpinned import UnpinnedCheck
 from depaudit.checks.unused import UnusedCheck
@@ -52,27 +51,6 @@ def test_used_ok():
 def test_dev_deps_not_flagged_unused():
   p = make_project(deps=[dep("pytest", "==7", kind="dev")], imports=[])
   assert UnusedCheck().run(p) == []
-
-
-def test_missing():
-  p = make_project(deps=[], imports=[imp("requests", "app.py", 5)])
-  findings = MissingCheck().run(p)
-  assert len(findings) == 1
-  assert findings[0].line == 5
-  assert findings[0].source == "app.py"
-
-
-def test_missing_dedupes_per_file():
-  p = make_project(
-    deps=[],
-    imports=[imp("requests", "a.py", 1), imp("requests", "a.py", 9)],
-  )
-  assert len(MissingCheck().run(p)) == 1
-
-
-def test_stdlib_not_missing():
-  p = make_project(deps=[], imports=[imp("json"), imp("os")])
-  assert MissingCheck().run(p) == []
 
 
 def test_stdlib_shadow():

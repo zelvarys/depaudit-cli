@@ -9,7 +9,6 @@ from pathlib import Path
 from . import __version__
 from .checks.base import Check
 from .checks.duplicate import DuplicateCheck
-from .checks.missing import MissingCheck
 from .checks.outdated import OutdatedCheck
 from .checks.stdlib_shadow import StdlibShadowCheck
 from .checks.unpinned import UnpinnedCheck
@@ -30,7 +29,6 @@ SKIP_DIRS = {
   ".tox", ".eggs", ".next", ".nuxt", ".cache", "out",
 }
 
-# filenames that declare dependencies
 MANIFEST_FILENAMES = {"requirements.txt", "pyproject.toml", "package.json"}
 
 
@@ -44,11 +42,6 @@ def _iter_files(root: Path):
 
 
 def _manifest_root(manifest: Path) -> Path:
-  """Return the directory that a manifest governs.
-
-  requirements.txt inside a 'requirements/' folder → one level up.
-  Everything else → the manifest's own directory.
-  """
   if manifest.name == "requirements.txt" and manifest.parent.name == "requirements":
     return manifest.parent.parent
   return manifest.parent
@@ -61,7 +54,6 @@ def _find_manifests(root: Path) -> list[Path]:
 def _build_subprojects(root: Path) -> list[SubProject]:
   manifests = _find_manifests(root)
 
-  # group manifests by the root they govern
   by_root: dict[Path, list[Path]] = {}
   for m in manifests:
     r = _manifest_root(m).resolve()
@@ -72,7 +64,6 @@ def _build_subprojects(root: Path) -> list[SubProject]:
   for sub_root, subs_manifests in by_root.items():
     sp = SubProject(root=sub_root, manifests=subs_manifests)
 
-    # parse deps from every manifest that governs this root
     for m in subs_manifests:
       if m.name == "requirements.txt":
         sp.dependencies.extend(RequirementsParser().parse(m))
@@ -81,19 +72,12 @@ def _build_subprojects(root: Path) -> list[SubProject]:
       elif m.name == "package.json":
         sp.dependencies.extend(PackageJsonParser().parse(m))
 
-    # scan imports under this root only
     sp.imports.extend(PyImportsScanner().scan(sub_root))
     sp.imports.extend(JsImportsScanner().scan(sub_root))
 
-    # figure out which languages this subproject speaks
     if any(m.name in ("requirements.txt", "pyproject.toml") for m in subs_manifests):
       sp.languages.add("python")
     if any(m.name == "package.json" for m in subs_manifests):
-      sp.languages.add("javascript")
-    # also infer from imports (e.g. a package.json project with .py files)
-    if any(i.source.endswith(".py") for i in sp.imports):
-      sp.languages.add("python")
-    if any(i.source.endswith((".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs")) for i in sp.imports):
       sp.languages.add("javascript")
 
     subprojects.append(sp)
@@ -114,7 +98,6 @@ def _run_checks(subprojects: list[SubProject], online: bool) -> list:
     checks: list[Check] = [
       UnpinnedCheck(),
       UnusedCheck(),
-      MissingCheck(),
       StdlibShadowCheck(),
       DuplicateCheck(),
     ]

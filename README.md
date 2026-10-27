@@ -11,7 +11,6 @@ Works on Termux, Linux, macOS. No runtime dependencies outside the standard libr
 
 - **unpinned** — a dependency declared without a version constraint
 - **unused** — declared but never imported anywhere in the source
-- **missing** — imported in code but not declared as a dependency
 - **stdlib-shadow** — a dependency whose name shadows a Python stdlib module
 - **duplicate** — the same package declared more than once with conflicting constraints
 - **outdated** — a dependency one or more major versions behind (with `--online`)
@@ -53,9 +52,6 @@ Sample output:
   warning  unpinned:2 — `flask` has no version constraint
   warning  unused:2   — `flask` is declared but never imported
 
-/home/me/myproject/app.py
-  error    missing:3  — `pandas` is imported but not declared
-
 Scanned 8 file(s), 4 dependency(ies).
 Found 3 issue(s).
 ```
@@ -89,10 +85,10 @@ Returns an array of findings:
 ```json
 [
   {
-    "check": "missing",
-    "severity": "error",
-    "message": "`pandas` is imported but not declared",
-    "source": "/home/me/myproject/app.py",
+    "check": "unused",
+    "severity": "warning",
+    "message": "`pandas` is declared but never imported",
+    "source": "/home/me/myproject/requirements.txt",
     "line": 3
   }
 ]
@@ -102,7 +98,7 @@ Returns an array of findings:
 
 It doesn't fix anything. It doesn't install or uninstall packages. It doesn't resolve transitive dependencies. It reads your manifest files and your source code, reports what looks wrong, and stops there.
 
-It also doesn't know about every Python import-to-package mapping. Common ones are handled (`PIL` → `pillow`, `cv2` → `opencv-python`, `sklearn` → `scikit-learn`), but if you import something under an unusual alias, the `missing` check may flag a false positive. The mapping lives in `depaudit/checks/missing.py` if you want to add to it.
+It also doesn't guess whether an import is "missing". If a module isn't in your manifest, it isn't a dependency, so it isn't reported.
 
 ### Development
 
