@@ -106,5 +106,9 @@ It also doesn't guess whether an import is "missing". If a module isn't in your 
 git clone https://github.com/zelvarys/depaudit-cli
 cd depaudit-cli
 pip install -e ".[dev]"
+pip install ruff
 pytest -q
+ruff check .
 ```
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
